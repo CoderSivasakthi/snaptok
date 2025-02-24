@@ -1,10 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='snaptok.css') }}">
 </head>
 <body>
-$END$
+    <header>
+        <div class="top-bar">
+            <div class="nav-buttons">
+            <a href="/home"><button>Home</button></a>
+            <a href="/dashboard"><button>Dashboard</button></a>
+            <a href="/daily-activity"><button>Daily Activity</button></a>
+            <a href="/"><button>Practice</button></a>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="mic-btn">Mic</button>
+                <button class="control-btn" id="camera-btn">Camera</button>
+                <button class="menu-toggle">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">Logo</div>
+            <h3>Siva</h3>
+            <h4>Siva@gmail.com</h4>
+            <div class="btn">
+                <button class="mode-btn" data-type="interview">Interview</button>
+                <button class="mode-btn" data-type="conversation">Conversation</button>
+                <button class="mode-btn" data-type="presentation">Presentation</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main>
+            <div class="top-controls">
+                <button id="start-btn" class="start-btn" onclick="startListening()">Start</button>
+                <div id="timer" class="timer" >00:00</div>
+                <button id="stop-btn" class="stop-btn" onclick="stopListening()">Stop</button>
+            </div>
+
+            <!-- Webcam Feed -->
+            <div class="webcam-feed">
+                <video id="webcam-feed" autoplay></video>
+            </div>
+
+            <!-- Large Text Area -->
+            <div class="large-text-area" id="textBox" contenteditable="true" style="width: 100%; height: 200px; border: 1px solid #000; padding: 10px; overflow-y: auto;">Text Area</div>
+
+            <!-- Download Section (Hidden initially) -->
+            <div id="download-section" class="hidden">
+                <a href="/download/video" class="download-btn">Download Video</a>
+                <a href="/download/audio" class="download-btn">Download Audio</a>
+            </div>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <div>
+                <h3>Silence occurred time:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+            <div>
+                <h3>Conversation time:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+            <div>
+                <h3>Audio time:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+        </aside>
+    </div>
+
+    <script src="{{ url_for('static', filename='snaptok.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,63 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f9;
+}
+
+.top-bar {
+    background: #333;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-buttons button, .control-btn {
+    background: #fff;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    background: #e0e0e0;
+    width: 200px;
+    padding: 20px;
+}
+
+.btn {
+    margin-top: 20px;
+}
+
+.mode-btn {
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.content-area {
+    display: flex;
+    flex-grow: 1;
+    padding: 20px;
+}
+
+#main-content {
+    flex-grow: 2;
+    margin-right: 20px;
+}
+
+#right-panel {
+    width: 300px;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}

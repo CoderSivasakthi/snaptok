@@ -1,10 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dash.css') }}">
 </head>
 <body>
-$END$
+    <header>
+        <div class="top-bar">
+            <div class="nav-buttons">
+                <a href="/home"><button>Home</button></a>
+                <a href="/dashboard"><button>Dashboard</button></a>
+                <a href="/daily-activity"><button>Daily Activity</button></a>
+                <a href="/"><button>Practice</button></a>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="mic-btn">Mic</button>
+                <button class="control-btn" id="camera-btn">Camera</button>
+                <button class="menu-toggle">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Left Sidebar (Static) -->
+        <aside class="sidebar">
+            <div class="logo">Logo</div>
+            <h3>Siva</h3>
+            <h4>Siva@gmail.com</h4>
+            <div class="btn">
+                <button class="mode-btn" data-type="interview">Interview</button>
+                <button class="mode-btn" data-type="conversation">Conversation</button>
+                <button class="mode-btn" data-type="presentation">Presentation</button>
+            </div>
+        </aside>
+
+        <!-- Main and Right Panels (Dynamic) -->
+        <div class="content-area">
+            <main id="main-content">
+                <h2>Welcome to the Dashboard</h2>
+                <p>Select a mode to get started.</p>
+            </main>
+            <section id="right-panel">
+                <h3>Insights</h3>
+                <p>Relevant insights will appear here.</p>
+            </section>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
