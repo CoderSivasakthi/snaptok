@@ -30,9 +30,11 @@
             <h3>Siva</h3>
             <h4>Siva@gmail.com</h4>
             <div class="btn">
-                <button class="mode-btn" data-type="interview">Interview</button>
-                <button class="mode-btn" data-type="conversation">Conversation</button>
-                <button class="mode-btn" data-type="presentation">Presentation</button>
+                <div class="btn">
+                    <a href="/interview"><button class="mode-btn" data-type="interview">Interview</button></a>
+                    <a href="/conversation"><button class="mode-btn" data-type="conversation">Conversation</button></a>
+                    <button onclick="window.location.href='{{ url_for('presentation') }}'">Presentation</button>
+                </div>
             </div>
         </aside>
 

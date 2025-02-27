@@ -2,11 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='interview.css') }}">
 </head>
 <body>
-    <h2>Interview Mode</h2>
-<p>This is the Interview Mode Content.</p>
+    <header>
+        <div class="top-bar">
+            <div class="nav-buttons">
+                <button>Home</button>
+                <button>Dashboard</button>
+                <button>Daily Activity</button>
+            </div>
+            <div class="controls">
+                <button class="mic-btn">Mic</button>
+                <button class="video-btn">Video</button>
+                <button class="menu-toggle">☰</button>
+            </div>
+        </div>
+    </header>
 
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">Logo</div>
+            <h3>Siva</h3>
+            <h4>Siva@gmail.com</h4>
+            <div class="btn">
+                <button>Interview</button>
+                <button>Conversation</button>
+                <button>Presentation</button>
+            </div>
+            <div class="userdata">
+                <label>Name:</label>
+                <input type="text" id="userName" placeholder="Your name">
+                <label>Branch:</label>
+                <input type="text" id="userBranch" placeholder="Your branch">
+                <label>Department:</label>
+                <input type="text" id="userDepartment" placeholder="Your department">
+                <label>Profile link:</label>
+                <input type="text" id="profileLink" placeholder="LinkedIn or Resume Link">
+                <button id="addUserBtn">Add</button>
+                <p>The above data will not be shared with anyone. It is only for your practice purposes.</p>
+            </div>
+        </aside>
+
+        <main>
+            <div class="top-controls">
+                <button id="startBtn">Start</button>
+                <div class="timer">00:00</div>
+                <button id="stopBtn">Stop</button>
+            </div>
+
+            <div class="webcam-feed">
+                <div class="ai-interview"><img src="/interview-person.jpg" alt="AI Interviewer" width="100%" height="100%"></div>
+                <div class="user"><img src="/user-image.jpg" alt="User" width="100%" height="100%"></div>
+            </div>
+
+            <div class="notes">
+                <div class="question-ai"></div>
+                <div class="large-text-area" contenteditable="true">Your response will appear here...</div>
+            </div>
+        </main>
+
+        <aside class="right-panel">
+            <div>
+                <h3>Lagging content timing:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+            <div>
+                <h3>Unwanted repeated words:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+            <div>
+                <h3>Silence occurred time:</h3>
+                <textarea class="text-area"></textarea>
+            </div>
+        </aside>
+    </div>
+
+    <script src="{{ url_for('static', filename='interview.js') }}"></script>
 </body>
 </html>

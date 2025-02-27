@@ -1,178 +1,137 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const startBtn = document.getElementById("start-btn");
-    const stopBtn = document.getElementById("stop-btn");
-    const cameraBtn = document.getElementById("camera-btn");
-    const micBtn = document.getElementById("mic-btn");
-    const videoElement = document.getElementById("webcam-feed");
-    const downloadSection = document.getElementById("download-section");
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const mainContent = document.querySelector('main');
-    const rightPanel = document.querySelector('.right-panel');
-    let stream = null;
     let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = true;
+
     let finalTranscript = "";
+    let lastSpeechTime = Date.now();
+    let silenceInterval = null;
+    let repeatedWords = new Set();
 
-    // Dynamic Content Loader
-    const clearContent = () => {
-        mainContent.innerHTML = '';
-        rightPanel.innerHTML = '';
-    };
+    let startTime, timerInterval;
+    let textBox = document.getElementById("textBox");
+    let silenceTextArea = document.getElementById("silenceLog");
+    let unwantedWordsArea = document.getElementById("unwantedWords");
+    let timerDisplay = document.getElementById("timer");
+    let titleInputContainer = document.getElementById("titleInputContainer");
+    let speechTitleInput = document.getElementById("speechTitleInput");
 
-    const loadContent = (mode) => {
-        clearContent();
-        if (mode === 'interview') {
-            mainContent.innerHTML = `
-                <h2>Interview Mode</h2>
-                <div class="top-controls">
-                    <button id="start-btn" class="start-btn" onclick="startListening()">Start Interview</button>
-                    <div id="timer" class="timer" >00:00</div>
-                    <button id="stop-btn" class="stop-btn" onclick="stopListening()">Stop Interview</button>
-                </div>
-                <div class="webcam-feed">
-                    <video id="webcam-feed" autoplay></video>
-                </div>
-            `;
-            rightPanel.innerHTML = `
-                <h3>Interview Insights:</h3>
-                <textarea class="text-area" placeholder="Notes"></textarea>
-            `;
-        } else if (mode === 'conversation') {
-            mainContent.innerHTML = `
-                <h2>Conversation Mode</h2>
-                <div class="large-text-area" id="textBox" contenteditable="true">Start your conversation...</div>
-            `;
-            rightPanel.innerHTML = `
-                <h3>Conversation Details:</h3>
-                <textarea class="text-area" placeholder="Conversation Analysis"></textarea>
-            `;
-        } else if (mode === 'presentation') {
-            mainContent.innerHTML = `
-                <h2>Presentation Mode</h2>
-                <div class="webcam-feed">
-                    <video id="webcam-feed" autoplay></video>
-                </div>
-                <div class="large-text-area" id="textBox" contenteditable="true">Presentation Notes...</div>
-            `;
-            rightPanel.innerHTML = `
-                <h3>Presentation Feedback:</h3>
-                <textarea class="text-area" placeholder="Feedback Notes"></textarea>
-            `;
-        }
-    };
-
-    modeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const mode = button.getAttribute('data-type');
-            loadContent(mode);
-        });
-    });
-
-    // Webcam and Audio Controls
-    startBtn?.addEventListener("click", async () => {
-        fetch("/start", { method: "POST" });
-        downloadSection.classList.add("hidden");
-
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            videoElement.srcObject = stream;
-        } catch (err) {
-            console.error("Error accessing webcam: ", err);
-        }
-    });
-
-    stopBtn?.addEventListener("click", () => {
-        fetch("/stop", { method: "POST" });
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        videoElement.srcObject = null;
-        downloadSection.classList.remove("hidden");
-    });
-
-    cameraBtn?.addEventListener("click", () => {
-        if (stream) {
-            stream.getVideoTracks().forEach(track => track.enabled = !track.enabled);
-        }
-    });
-
-    micBtn?.addEventListener("click", () => {
-        if (stream) {
-            stream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
-        }
-    });
-
-    // Speech Recognition and Grammar Check
-    window.onload = function () {
-        let textBox = document.getElementById('textBox');
-        let lastText = "";
-
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                let transcript = event.results[i][0].transcript;
-                transcript = transcript.replace(/\.\.\.|…/g, '');
-                transcript = transcript.replace(/\s+/g, ' ').trim();
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript + ' ';
-                } else {
-                    interimTranscript += transcript + ' ';
-                }
-            }
-            textBox.innerText = finalTranscript + interimTranscript;
-            if (lastText !== textBox.innerText) {
-                lastText = textBox.innerText;
-                checkGrammar(textBox.innerText);
-            }
-        };
-
-        recognition.onspeechend = () => {
-            let silenceTime = new Date().toLocaleTimeString();
-            finalTranscript += ' _ ';
-            textBox.innerText = finalTranscript;
-        };
-    };
-
-    window.startListening = function () {
+    // Start Button
+    document.getElementById("start-btn").addEventListener("click", () => {
         recognition.start();
-    }
+        startTime = Date.now();
+        startTimer();
+        resetData();
+        titleInputContainer.style.display = "none"; // Hide title input
+        startSilenceDetection();
+    });
 
-    window.stopListening = function () {
+    // Stop Button
+    document.getElementById("stop-btn").addEventListener("click", () => {
         recognition.stop();
+        stopTimer();
+        clearInterval(silenceInterval);
+        titleInputContainer.style.display = "block"; // Show title input
+    });
+
+    // Start Timer
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            let elapsed = Math.floor((Date.now() - startTime) / 1000);
+            let minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            let seconds = String(elapsed % 60).padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+        }, 1000);
     }
 
-    async function checkGrammar(text) {
-        if (!text.trim()) return;
-        let response = await fetch('https://api.languagetool.org/v2/check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `text=${encodeURIComponent(text)}&language=en-US`
-        });
-        let data = await response.json();
-        highlightErrors(data.matches, text);
+    // Stop Timer
+    function stopTimer() {
+        clearInterval(timerInterval);
     }
 
-    function highlightErrors(errors, text) {
-        let textBox = document.getElementById('textBox');
-        let hesitationWords = /\b(um|uh|like|you know|hmm)\b/gi;
-        text = text.replace(hesitationWords, `<span style='text-decoration: underline; color: purple;'>$1</span>`);
-
-        let repeatedWords = /(\b\w+\b)\s+\1/gi;
-        text = text.replace(repeatedWords, `<span style='text-decoration: underline; color: yellow;'>$1 $1</span>`);
-
-        errors.forEach(error => {
-            let color = 'red';
-            if (error.rule.issueType === 'misspelling') color = 'blue';
-            else if (error.rule.issueType === 'style') color = 'orange';
-            else if (error.rule.issueType === 'word-choice') color = 'green';
-
-            let regex = new RegExp(error.context.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-            text = text.replace(regex, `<span style='text-decoration: underline; color: ${color};'>${error.context.text}</span>`);
-        });
-
-        textBox.innerHTML = text;
+    // Reset data when starting new speech
+    function resetData() {
+        finalTranscript = "";
+        repeatedWords.clear();
+        textBox.textContent = "Listening...";
+        silenceTextArea.value = "";
+        unwantedWordsArea.value = "";
+        lastSpeechTime = Date.now();
     }
+
+    // Speech Recognition Result Handling
+    recognition.onresult = (event) => {
+        clearInterval(silenceInterval);
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            let transcript = event.results[i][0].transcript.trim();
+            lastSpeechTime = Date.now();
+
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + " ";
+            } else {
+                interimTranscript += transcript + " ";
+            }
+        }
+
+        let processedText = finalTranscript + interimTranscript;
+        let wordsArray = processedText.split(/\s+/).map(word => escapeHTML(word));
+
+        let highlightedText = wordsArray.map((word, index, arr) => {
+            if (index > 0 && word === arr[index - 1]) {
+                repeatedWords.add(word);
+                return `<span style="color: blue;">${word}</span>`;
+            }
+            return word;
+        }).join(" ");
+
+        textBox.textContent = removeHTMLTags(highlightedText);
+        updateUnwantedWords();
+        startSilenceDetection();
+    };
+
+    // Detect Silence (If no speech detected for 4+ seconds)
+    function startSilenceDetection() {
+        clearInterval(silenceInterval);
+        silenceInterval = setInterval(() => {
+            let currentTime = Date.now();
+            if ((currentTime - lastSpeechTime) / 1000 >= 4) {
+                let silenceTime = new Date().toLocaleTimeString();
+                silenceTextArea.value += `Silence detected at: ${silenceTime}\n`;
+            }
+        }, 1000);
+    }
+
+    // Update Unwanted Words Box
+    function updateUnwantedWords() {
+        unwantedWordsArea.value = Array.from(repeatedWords).join(", ");
+    }
+
+    // Escape HTML Special Characters
+    function escapeHTML(text) {
+        let div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Remove HTML Tags (Prevents rendering of unwanted HTML inside text box)
+    function removeHTMLTags(text) {
+        let div = document.createElement("div");
+        div.innerHTML = text;
+        return div.textContent || div.innerText;
+    }
+
+    // Speech Title Input Handling
+    speechTitleInput.addEventListener("input", () => {
+        console.log("Speech Title Entered:", speechTitleInput.value);
+    });
+
+    // Handle Speech Recognition Errors
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+    };
 });
-
-
+document.getElementById("presentation-btn").addEventListener("click", function() {
+    window.location.href = "/presentation";
+});
